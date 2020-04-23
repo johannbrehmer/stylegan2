@@ -63,7 +63,7 @@ def _run_cmd(cmd):
 def _prepare_nvcc_cli(opts):
     cmd = 'nvcc --std=c++11 -DNDEBUG ' + opts.strip()
     # Workaround, see https://stackoverflow.com/questions/59342888/tensorflow-error-this-file-requires-compiler-and-library-support-for-the-iso-c.
-    # Original: cmd = 'nvcc ' + opts.strip()
+    # cmd = 'nvcc ' + opts.strip()  # Original
 
     cmd += ' --disable-warnings'
     cmd += ' --include-path "%s"' % tf.sysconfig.get_include()
@@ -80,6 +80,12 @@ def _prepare_nvcc_cli(opts):
     else:
         cmd += ' --compiler-bindir "%s"' % compiler_bindir
     cmd += ' 2>&1'
+
+    print("")
+    print("Compile cmd:")
+    print(cmd)
+    print("")
+
     return cmd
 
 #----------------------------------------------------------------------------
