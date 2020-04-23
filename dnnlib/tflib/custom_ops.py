@@ -81,10 +81,11 @@ def _prepare_nvcc_cli(opts):
         cmd += ' --compiler-bindir "%s"' % compiler_bindir
     cmd += ' 2>&1'
 
-    print("")
-    print("Compile cmd:")
-    print(cmd)
-    print("")
+    # Debug output
+    # print("")
+    # print("Compile cmd:")
+    # print(cmd)
+    # print("")
 
     return cmd
 
@@ -133,7 +134,10 @@ def get_plugin(cuda_file):
             compile_opts += '"%s"' % os.path.join(tf.sysconfig.get_lib(), 'python', '_pywrap_tensorflow_internal.lib')
         elif os.name == 'posix':
             compile_opts += '"%s"' % os.path.join(tf.sysconfig.get_lib(), 'python', '_pywrap_tensorflow_internal.so')
-            compile_opts += ' --compiler-options \'-fPIC -D_GLIBCXX_USE_CXX11_ABI=0\''
+
+            # Workaround, see https://stackoverflow.com/questions/59342888/tensorflow-error-this-file-requires-compiler-and-library-support-for-the-iso-c
+            compile_opts += ' --compiler-options \'-fPIC -D_GLIBCXX_USE_CXX11_ABI=1\''
+            #  compile_opts += ' --compiler-options \'-fPIC -D_GLIBCXX_USE_CXX11_ABI=0\''  # Original
         else:
             assert False # not Windows or Linux, w00t?
         compile_opts += ' --gpu-architecture=%s' % _get_cuda_gpu_arch_string()
