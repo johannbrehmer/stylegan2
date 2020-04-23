@@ -61,7 +61,8 @@ def _run_cmd(cmd):
         raise RuntimeError('NVCC returned an error. See below for full command line and output log:\n\n%s\n\n%s' % (cmd, output))
 
 def _prepare_nvcc_cli(opts):
-    cmd = 'nvcc --std=c++11 -DNDEBUG ' + opts.strip()
+    # cmd = 'nvcc --std=c++11 -DNDEBUG ' + opts.strip()
+    cmd = 'nvcc --std=c++11 ' + opts.strip()
     # Workaround, see https://stackoverflow.com/questions/59342888/tensorflow-error-this-file-requires-compiler-and-library-support-for-the-iso-c.
     # cmd = 'nvcc ' + opts.strip()  # Original
 
@@ -82,10 +83,10 @@ def _prepare_nvcc_cli(opts):
     cmd += ' 2>&1'
 
     # Debug output
-    print("")
-    print("Compile cmd:")
-    print(cmd)
-    print("")
+    # print("")
+    # print("Compile cmd:")
+    # print(cmd)
+    # print("")
 
     return cmd
 
