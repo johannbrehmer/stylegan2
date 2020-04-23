@@ -1,3 +1,11 @@
+## Notes to self (original README below):
+
+- Try on the CILVR cluster, it didn't work on Prince for reasons unknown
+- Use the workarounds in `dnn_lib/tflib/custom_ops.py` in this repo (based on [this StackOverflow discussion](https://stackoverflow.com/questions/59342888/tensorflow-error-this-file-requires-compiler-and-library-support-for-the-iso-c)). Instead iof the `-DNDEBUG` flag, can also modify the offending asssert in tensorflow (see the links in that SO discussion). 
+- `module load cuda-10.0`
+- `conda create --name tensorflow python=3.6 tensorflow-gpu=1.15 Pillow  scipy  requests`
+
+
 ## StyleGAN2 &mdash; Official TensorFlow Implementation
 
 ![Teaser image](./docs/stylegan2-teaser-1024x256.png)

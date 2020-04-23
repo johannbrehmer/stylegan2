@@ -165,10 +165,6 @@ Run 'python %(prog)s <subcommand> --help' for subcommand help.''',
     kwargs = vars(args)
     subcmd = kwargs.pop('command')
 
-    # Debug output
-    from tensorflow.python.client import device_lib
-    print(device_lib.list_local_devices())
-
     if subcmd is None:
         print ('Error: missing subcommand.  Re-run with --help for usage.')
         sys.exit(1)
