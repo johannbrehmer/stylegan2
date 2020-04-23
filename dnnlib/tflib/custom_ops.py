@@ -82,10 +82,10 @@ def _prepare_nvcc_cli(opts):
     cmd += ' 2>&1'
 
     # Debug output
-    # print("")
-    # print("Compile cmd:")
-    # print(cmd)
-    # print("")
+    print("")
+    print("Compile cmd:")
+    print(cmd)
+    print("")
 
     return cmd
 
