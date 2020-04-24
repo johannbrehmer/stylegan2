@@ -35,7 +35,7 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
         grid = np.vstack(each_grid).T
 
         for grid_idx, z_ in enumerate(grid):
-            print('Generating image for grid point %d (%d/%d) ...' % (z_, grid_idx, len(seeds)))
+            print('Generating image for latent vars %s (grid point %d/%d) ...' % (z_, grid_idx, len(seeds)))
             z = np.zeros(1, *Gs.input_shape[1:]) # [minibatch, component]
             z[:,:subspace] = z_
             tflib.set_vars({var: np.zeros(*var.shape.as_list()) for var in noise_vars}) # [height, width]
