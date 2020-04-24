@@ -57,8 +57,8 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
             tflib.set_vars(fixed_noise) # [height, width]
             images = Gs.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
             if seed_idx < high_res:
-                PIL.Image.fromarray(images[0], 'RGB').save(dnnlib.make_run_dir_path('subspace_1024_%04d.png' % seed))
-            PIL.Image.fromarray(images[0], 'RGB').resize((64, 64), PIL.Image.ANTIALIAS).save(dnnlib.make_run_dir_path('subspace_64_%04d.png' % seed))
+                PIL.Image.fromarray(images[0], 'RGB').save(dnnlib.make_run_dir_path('subspace_1024_%05d.png' % seed))
+            PIL.Image.fromarray(images[0], 'RGB').resize((64, 64), PIL.Image.ANTIALIAS).save(dnnlib.make_run_dir_path('subspace_64_%05d.png' % seed))
 
     else:  # Default mode (no changes)
         for seed_idx, seed in enumerate(seeds):
