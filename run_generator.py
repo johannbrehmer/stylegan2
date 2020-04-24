@@ -27,6 +27,9 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
     if truncation_psi is not None:
         Gs_kwargs.truncation_psi = truncation_psi
 
+    rnd = np.random.RandomState(12345)
+    noise = {var: rnd.randn(*var.shape.as_list()) for var in noise_vars}
+
     if grid:
         assert subspace == 2
         each = np.linspace(-boundary, boundary, resolution)
@@ -38,7 +41,7 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
             print('Generating image for latent vars %s (grid point %d/%d) ...' % (z_, grid_idx, len(seeds)))
             z = np.zeros((1, *Gs.input_shape[1:])) # [minibatch, component]
             z[:,:subspace] = z_
-            tflib.set_vars({var: np.zeros(var.shape) for var in noise_vars}) # [height, width]
+            tflib.set_vars(noise) # [height, width]
             images = Gs.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
             PIL.Image.fromarray(images[0], 'RGB').save(dnnlib.make_run_dir_path('seed%04d.png' % grid_idx))
 
@@ -49,8 +52,7 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
             z = rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
             if subspace is not None:
                 z[:,subspace:] = 0.
-            # tflib.set_vars({var: rnd.randn(*var.shape.as_list()) for var in noise_vars}) # [height, width]  # Original
-            tflib.set_vars({var: np.zeros(var.shape) for var in noise_vars}) # [height, width]
+            tflib.set_vars(noise) # [height, width]
             images = Gs.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
             PIL.Image.fromarray(images[0], 'RGB').save(dnnlib.make_run_dir_path('seed%04d.png' % seed))
 
