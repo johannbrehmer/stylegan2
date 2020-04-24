@@ -16,7 +16,7 @@ import pretrained_networks
 
 #----------------------------------------------------------------------------
 
-def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=False, boundary=1.0, resolution=9, high_res=100):
+def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=False, boundary=1.0, resolution=9, fixstd=0.5, high_res=100):
     print('Loading networks from "%s"...' % network_pkl)
     _G, _D, Gs = pretrained_networks.load_networks(network_pkl)
     noise_vars = [var for name, var in Gs.components.synthesis.vars.items() if name.startswith('noise')]
@@ -28,7 +28,7 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
         Gs_kwargs.truncation_psi = truncation_psi
 
     rnd = np.random.RandomState(seeds[0])
-    fixed_z = rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
+    fixed_z = fixstd * rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
     fixed_noise = {var: rnd.randn(*var.shape.as_list()) for var in noise_vars}
 
     if grid:  # Subspace grid
@@ -170,7 +170,8 @@ Run 'python %(prog)s <subcommand> --help' for subcommand help.''',
     parser_generate_images.add_argument('--grid', action='store_true')
     parser_generate_images.add_argument('--subspace', type=int, default=None)
     parser_generate_images.add_argument('--resolution', type=int, default=9)
-    parser_generate_images.add_argument('--boundary', type=float, default=1.0)
+    parser_generate_images.add_argument('--boundary', type=float, default=2.0)
+    parser_generate_images.add_argument('--fixstd', type=float, default=0.1)
 
     parser_style_mixing_example = subparsers.add_parser('style-mixing-example', help='Generate style mixing video')
     parser_style_mixing_example.add_argument('--network', help='Network pickle filename', dest='network_pkl', required=True)
