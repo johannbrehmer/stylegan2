@@ -16,7 +16,7 @@ import pretrained_networks
 
 #----------------------------------------------------------------------------
 
-def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=False, boundary=2.0, resolution=9):
+def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=False, boundary=1.0, resolution=9):
     print('Loading networks from "%s"...' % network_pkl)
     _G, _D, Gs = pretrained_networks.load_networks(network_pkl)
     noise_vars = [var for name, var in Gs.components.synthesis.vars.items() if name.startswith('noise')]
