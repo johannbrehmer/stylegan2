@@ -29,7 +29,6 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
 
     rnd = np.random.RandomState(seeds[0])
     fixed_z = rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
-    print(fixed_z.shape)
     fixed_noise = {var: rnd.randn(*var.shape.as_list()) for var in noise_vars}
 
     if grid:  # Subspace grid
@@ -41,7 +40,7 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
 
         for grid_idx, z_ in enumerate(grid):
             print('Generating image for latent vars %s (grid point %d/%d) ...' % (z_, grid_idx, len(seeds)))
-            z = np.zeros((1, *Gs.input_shape[1:])) # [minibatch, component]
+            z = rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
             z[:,subspace:] = fixed_z[:,subspace:]
             tflib.set_vars(fixed_noise) # [height, width]
             images = Gs.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
