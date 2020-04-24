@@ -16,7 +16,7 @@ import pretrained_networks
 
 #----------------------------------------------------------------------------
 
-def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=False, boundary=1.0, resolution=9):
+def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=False, boundary=1.0, resolution=9, high_res=100):
     print('Loading networks from "%s"...' % network_pkl)
     _G, _D, Gs = pretrained_networks.load_networks(network_pkl)
     noise_vars = [var for name, var in Gs.components.synthesis.vars.items() if name.startswith('noise')]
@@ -27,10 +27,12 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
     if truncation_psi is not None:
         Gs_kwargs.truncation_psi = truncation_psi
 
-    rnd = np.random.RandomState(12345)
-    noise = {var: rnd.randn(*var.shape.as_list()) for var in noise_vars}
+    rnd = np.random.RandomState(seeds[0])
+    fixed_z = rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
+    print(fixed_z.shape)
+    fixed_noise = {var: rnd.randn(*var.shape.as_list()) for var in noise_vars}
 
-    if grid:
+    if grid:  # Subspace grid
         assert subspace == 2
         each = np.linspace(-boundary, boundary, resolution)
         each_grid = np.meshgrid(*[each for _ in range(subspace)], indexing="ij")
@@ -40,19 +42,30 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
         for grid_idx, z_ in enumerate(grid):
             print('Generating image for latent vars %s (grid point %d/%d) ...' % (z_, grid_idx, len(seeds)))
             z = np.zeros((1, *Gs.input_shape[1:])) # [minibatch, component]
-            z[:,:subspace] = z_
-            tflib.set_vars(noise) # [height, width]
+            z[:,subspace:] = fixed_z[:,subspace:]
+            tflib.set_vars(fixed_noise) # [height, width]
             images = Gs.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
-            PIL.Image.fromarray(images[0], 'RGB').save(dnnlib.make_run_dir_path('seed%04d.png' % grid_idx))
+            PIL.Image.fromarray(images[0], 'RGB').save(dnnlib.make_run_dir_path('grid_1024_%04d.png' % grid_idx))
+            PIL.Image.fromarray(images[0], 'RGB').resize((64, 64), PIL.Image.ANTIALIAS).save(dnnlib.make_run_dir_path('grid_64_%04d.png' % grid_idx))
 
-    else:
+    elif subspace is not None:  # Subspace sampling
+        for seed_idx, seed in enumerate(seeds[1:]):
+            print('Generating image for seed %d (%d/%d) ...' % (seed, seed_idx, len(seeds)))
+            rnd = np.random.RandomState(seed)
+            z = rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
+            z[:,subspace:] = fixed_z[:,subspace:]
+            tflib.set_vars(fixed_noise) # [height, width]
+            images = Gs.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
+            if seed_idx < high_res:
+                PIL.Image.fromarray(images[0], 'RGB').save(dnnlib.make_run_dir_path('subspace_1024_%04d.png' % seed))
+            PIL.Image.fromarray(images[0], 'RGB').resize((64, 64), PIL.Image.ANTIALIAS).save(dnnlib.make_run_dir_path('subspace_64_%04d.png' % seed))
+
+    else:  # Default mode (no changes)
         for seed_idx, seed in enumerate(seeds):
             print('Generating image for seed %d (%d/%d) ...' % (seed, seed_idx, len(seeds)))
             rnd = np.random.RandomState(seed)
             z = rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
-            if subspace is not None:
-                z[:,subspace:] = 0.
-            tflib.set_vars(noise) # [height, width]
+            tflib.set_vars({var: rnd.randn(*var.shape.as_list()) for var in noise_vars}) # [height, width]
             images = Gs.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
             PIL.Image.fromarray(images[0], 'RGB').save(dnnlib.make_run_dir_path('seed%04d.png' % seed))
 
@@ -153,8 +166,11 @@ Run 'python %(prog)s <subcommand> --help' for subcommand help.''',
     parser_generate_images.add_argument('--seeds', type=_parse_num_range, help='List of random seeds', required=True)
     parser_generate_images.add_argument('--truncation-psi', type=float, help='Truncation psi (default: %(default)s)', default=0.5)
     parser_generate_images.add_argument('--result-dir', help='Root directory for run results (default: %(default)s)', default='results', metavar='DIR')
+
     parser_generate_images.add_argument('--grid', action='store_true')
     parser_generate_images.add_argument('--subspace', type=int, default=None)
+    parser_generate_images.add_argument('--resolution', type=int, default=9)
+    parser_generate_images.add_argument('--boundary', type=float, default=1.0)
 
     parser_style_mixing_example = subparsers.add_parser('style-mixing-example', help='Generate style mixing video')
     parser_style_mixing_example.add_argument('--network', help='Network pickle filename', dest='network_pkl', required=True)
