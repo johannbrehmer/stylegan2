@@ -40,8 +40,8 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
 
         for grid_idx, z_ in enumerate(grid):
             print('Generating image for latent vars %s (grid point %d/%d) ...' % (z_, grid_idx, len(seeds)))
-            z = rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
-            z[:,subspace:] = fixed_z[:,subspace:]
+            z = np.copy(fixed_z)
+            z[:subspace] = z_
             tflib.set_vars(fixed_noise) # [height, width]
             images = Gs.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
             PIL.Image.fromarray(images[0], 'RGB').save(dnnlib.make_run_dir_path('grid_1024_%04d.png' % grid_idx))
