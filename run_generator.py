@@ -16,7 +16,7 @@ import pretrained_networks
 
 #----------------------------------------------------------------------------
 
-def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=False, boundary=1.0, resolution=9, fixstd=0.5, high_res=100):
+def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=False, boundary=1.0, resolution=9, fixstd=0.5, high_res=100, conditional=False, theta=None):
     print('Loading networks from "%s"...' % network_pkl)
     _G, _D, Gs = pretrained_networks.load_networks(network_pkl)
     noise_vars = [var for name, var in Gs.components.synthesis.vars.items() if name.startswith('noise')]
@@ -47,6 +47,22 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
             images = Gs.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
             PIL.Image.fromarray(images[0], 'RGB').save(dnnlib.make_run_dir_path('grid_1024_%04d.png' % grid_idx))
             PIL.Image.fromarray(images[0], 'RGB').resize((64, 64), PIL.Image.ANTIALIAS).save(dnnlib.make_run_dir_path('grid_64_%04d.png' % grid_idx))
+
+    elif subspace is not None and conditional:  # Conditional subspace sampling
+        thetas = []
+        for seed_idx, seed in enumerate(seeds[1:]):
+            print('Generating image for seed %d (%d/%d) ...' % (seed, seed_idx, len(seeds)))
+            rnd = np.random.RandomState(seed)
+            theta_ = theta if theta is not None else rnd.randn(1)
+            z = np.exp(theta_) * rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
+            z[:,subspace:] = fixed_z[:,subspace:]
+            tflib.set_vars(fixed_noise) # [height, width]
+            images = Gs.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
+            if seed_idx < high_res:
+                PIL.Image.fromarray(images[0], 'RGB').save(dnnlib.make_run_dir_path('subspace_1024_%05d.png' % seed))
+            PIL.Image.fromarray(images[0], 'RGB').resize((64, 64), PIL.Image.ANTIALIAS).save(dnnlib.make_run_dir_path('subspace_64_%05d.png' % seed))
+            thetas.append(theta_)
+        np.save("./theta.npy", np.array(thetas))
 
     elif subspace is not None:  # Subspace sampling
         for seed_idx, seed in enumerate(seeds[1:]):
@@ -172,6 +188,8 @@ Run 'python %(prog)s <subcommand> --help' for subcommand help.''',
     parser_generate_images.add_argument('--resolution', type=int, default=9)
     parser_generate_images.add_argument('--boundary', type=float, default=2.0)
     parser_generate_images.add_argument('--fixstd', type=float, default=0.1)
+    parser_generate_images.add_argument('--conditional', type=bool, default=False)
+    parser_generate_images.add_argument('--theta', type=float, default=None)
 
     parser_style_mixing_example = subparsers.add_parser('style-mixing-example', help='Generate style mixing video')
     parser_style_mixing_example.add_argument('--network', help='Network pickle filename', dest='network_pkl', required=True)
