@@ -1,11 +1,13 @@
 ## Notes to self (original README below):
 
-- Try on the CILVR cluster, it didn't work on Prince for reasons unknown
-- Use the workarounds in `dnn_lib/tflib/custom_ops.py` in this repo (based on [this StackOverflow discussion](https://stackoverflow.com/questions/59342888/tensorflow-error-this-file-requires-compiler-and-library-support-for-the-iso-c)). Instead iof the `-DNDEBUG` flag, can also modify the offending asssert in tensorflow (see the links in that SO discussion). 
-- `module load cuda-10.0`
-- `conda create --name tensorflow python=3.6 tensorflow-gpu=1.15 Pillow  scipy  requests`, make sure it uses this `python`
-- `nvcc test_nvcc.cu -o test_nvcc -run`
-- `python run_generator.py generate-images --network=gdrive:networks/stylegan2-ffhq-config-f.pkl --seeds=6600-6625 --truncation-psi=0.5`
+- `python run_generator.py generate-images --network=gdrive:networks/stylegan2-ffhq-config-f.pkl --seeds=1-10000 --subspace=2`
+- `python run_generator.py generate-images --network=gdrive:networks/stylegan2-ffhq-config-f.pkl --seeds=10001-11000 --subspace=2`
+- `python run_generator.py generate-images --network=gdrive:networks/stylegan2-ffhq-config-f.pkl --subspace=2 --grid`
+
+- `python run_generator.py generate-images --network=gdrive:networks/stylegan2-ffhq-config-f.pkl --seeds=1-20000 --subspace=64 --conditional`
+- `python run_generator.py generate-images --network=gdrive:networks/stylegan2-ffhq-config-f.pkl --seeds=20001-21000 --subspace=64 --conditional --theta=0`
+- `python run_generator.py generate-images --network=gdrive:networks/stylegan2-ffhq-config-f.pkl --seeds=21001-22000 --subspace=64 --conditional --theta=-1`
+- `python run_generator.py generate-images --network=gdrive:networks/stylegan2-ffhq-config-f.pkl --seeds=22001-23000 --subspace=64 --conditional --theta=1`
 
 ## StyleGAN2 &mdash; Official TensorFlow Implementation
 

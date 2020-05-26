@@ -27,7 +27,7 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
     if truncation_psi is not None:
         Gs_kwargs.truncation_psi = truncation_psi
 
-    rnd = np.random.RandomState(seeds[0])
+    rnd = np.random.RandomState(0)
     fixed_z = fixstd * rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
     fixed_noise = {var: rnd.randn(*var.shape.as_list()) for var in noise_vars}
 
@@ -50,7 +50,7 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
 
     elif subspace is not None and conditional:  # Conditional subspace sampling
         thetas = []
-        for seed_idx, seed in enumerate(seeds[1:]):
+        for seed_idx, seed in enumerate(seeds):
             print('Generating image for seed %d (%d/%d) ...' % (seed, seed_idx, len(seeds)))
             rnd = np.random.RandomState(seed)
             theta_ = theta if theta is not None else rnd.randn(1)
@@ -62,10 +62,10 @@ def generate_images(network_pkl, seeds, truncation_psi, subspace=None, grid=Fals
                 PIL.Image.fromarray(images[0], 'RGB').save(dnnlib.make_run_dir_path('subspace_1024_%05d.png' % seed))
             PIL.Image.fromarray(images[0], 'RGB').resize((64, 64), PIL.Image.ANTIALIAS).save(dnnlib.make_run_dir_path('subspace_64_%05d.png' % seed))
             thetas.append(theta_)
-        np.save("./theta.npy", np.array(thetas))
+        np.save(dnnlib.make_run_dir_path('theta.npy'), np.array(thetas))
 
     elif subspace is not None:  # Subspace sampling
-        for seed_idx, seed in enumerate(seeds[1:]):
+        for seed_idx, seed in enumerate(seeds):
             print('Generating image for seed %d (%d/%d) ...' % (seed, seed_idx, len(seeds)))
             rnd = np.random.RandomState(seed)
             z = rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
@@ -187,7 +187,7 @@ Run 'python %(prog)s <subcommand> --help' for subcommand help.''',
     parser_generate_images.add_argument('--subspace', type=int, default=None)
     parser_generate_images.add_argument('--resolution', type=int, default=9)
     parser_generate_images.add_argument('--boundary', type=float, default=2.0)
-    parser_generate_images.add_argument('--fixstd', type=float, default=0.1)
+    parser_generate_images.add_argument('--fixstd', type=float, default=0.05)
     parser_generate_images.add_argument('--conditional', type=bool, default=False)
     parser_generate_images.add_argument('--theta', type=float, default=None)
 
